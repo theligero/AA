@@ -220,7 +220,7 @@ public class Record : MonoBehaviour
             }
             s += act + "\n";
         }
-        File.WriteAllText(file + ".csv", s);
+        File.WriteAllText("Data/" + file + ".csv", s);
         Debug.Log("File " + file + " save");
     }
 }
