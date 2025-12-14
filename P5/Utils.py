@@ -9,7 +9,7 @@ def ExportONNX_JSON_TO_Custom(onnx_json,mlp):
     initializer = graphDic["initializer"]
     s= "num_layers:"+str(mlp.n_layers_)+"\n"
     index = 0
-    parameterIndex = 0;
+    parameterIndex = 0
     for parameter in initializer:
         name = parameter["name"]
         print("Capa ",name)

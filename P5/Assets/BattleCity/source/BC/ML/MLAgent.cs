@@ -40,12 +40,16 @@ public class MLAgent : MonoBehaviour
     private OneHotEncoding oneHotEncoding;
     private float _time;
 
+    public int temporalWindow = 4;
+    private Queue<float[]> window;
+
 
     // Start is called before the first frame update
     void Start()
     {
         if (agentEnable)
         {
+            window = new Queue<float[]>(); // --> descomentar para ej6
             string file = text.text;
             if (model == ModelType.MLP)
             {
@@ -147,10 +151,10 @@ public class MLAgent : MonoBehaviour
         switch (model)
         {
             case ModelType.MLP:
-                action = 0;
-                //TODO leer de los parámetros de la percepción.
-                //Debe respetar el mismo orden que los datos.
-                //TODO Llamar a RunFeedForward
+                float[] raw = perception.Parameters.ConvertToFloatArray();
+                float[] outputs = RunFeedForward(raw);
+                action = mlpModel.Predict(outputs);
+
                 //guardar la toma de decisiones y despues validar si son correctas.
                 recorder.AIRecord(action);
                 break;
@@ -166,15 +170,39 @@ public class MLAgent : MonoBehaviour
     /// <returns></returns>
     public float[] RunFeedForward(float[] modelInput)
     {
-        //permite eliminar columnas de la percepción si las habeis eliminado en el modelo.
         modelInput = modelInput.Where((value, index) => !indicesToRemove.Contains(index)).ToArray();
-        //TODO Hacer las transformaciónes necesarias para ejecutar el modelo
 
-        //Guardamos el model input con las trasformaciones para poder ejecutarlo desde paython y comporbar si funciona.
-        recorder.AIRecord(modelInput);
-        float[] outputs = this.mlpModel.FeedForward(modelInput);
+        modelInput = oneHotEncoding.Transform(modelInput);
 
-        return outputs;
+        modelInput = StackTemporal(modelInput); // comentar para caso estándar
+
+        modelInput = standarScaler.Transform(modelInput);
+
+        recorder.AIRecord(modelInput); // guarda el vector FINAL que entra al MLP
+        return mlpModel.FeedForward(modelInput);
+    }
+
+    private float[] StackTemporal(float[] x)
+    {
+        // Guardamos el frame actual
+        window.Enqueue((float[])x.Clone());
+        while (window.Count > temporalWindow) window.Dequeue();
+
+        // Si aún no hay suficientes, "rellena" con el más antiguo
+        List<float[]> frames = window.ToList();
+        while (frames.Count < temporalWindow) frames.Insert(0, frames[0]);
+
+        int D = x.Length;
+        float[] stacked = new float[D * temporalWindow];
+
+        // Orden: [t, t-1, t-2, ...]
+        for (int k = 0; k < temporalWindow; k++)
+        {
+            float[] f = frames[frames.Count - 1 - k];
+            System.Array.Copy(f, 0, stacked, k * D, D);
+        }
+
+        return stacked;
     }
 
 

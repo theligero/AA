@@ -31,8 +31,14 @@ public class StandarScaler
     public float[] Transform(float[] a_input)
     {
         float[] scaled = new float[a_input.Length];
-        //TODO implementar
+        for (int i = 0; i < a_input.Length; i++)
+        {
+            float m = mean[i];
+            float s = std[i];
+            if (Mathf.Abs(s) < 1e-8f) s = 1f; // evita div/0
+            scaled[i] = (a_input[i] - m) / s;
+        }
 
-        return a_input;
+        return scaled;
     }
 }

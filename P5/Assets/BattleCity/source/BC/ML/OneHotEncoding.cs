@@ -39,11 +39,27 @@ public class OneHotEncoding
     /// <returns></returns>
     public float[] Transform(float[] input)
     {
+        // Si no hay OHE configurado, no se toca nada
+        if (extraElements == null || extraElements.Count == 0) return input;
+
         List<float> output = new List<float>();
+
         for (int i = 0; i < input.Length; i++)
         {
-            //TODO implementar el OHE.
+            if (extraElements.TryGetValue(i, out int count))
+            {
+                int cls = Mathf.Clamp(Mathf.RoundToInt(input[i]), 0, count - 1);
+                for (int c = 0; c < count; c++)
+                {
+                    output.Add(c == cls ? 1f : 0f);
+                }
+            }
+            else
+            {
+                output.Add(input[i]);
+            }
         }
+
         return output.ToArray();
     }
 }
