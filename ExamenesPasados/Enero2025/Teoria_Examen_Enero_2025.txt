@@ -1,0 +1,51 @@
+TU NOMBRE AQUÍ
+
+EXAMEN Enero 2025 — Parte teórica (2 puntos)
+
+Pregunta 1 (0.4)
+Si tengo ejemplos SIN etiquetar (no supervised), puedo:
+- Aprendizaje NO supervisado: clustering (K-Means, GMM, DBSCAN) para descubrir grupos; reducción de dimensionalidad (PCA, t-SNE/UMAP) para visualizar estructura; reglas de asociación si aplica.
+- Aprendizaje auto-supervisado / representaciones: autoencoders (reconstrucción), contrastive learning, etc., para obtener “embeddings” y luego (si consigo pocas etiquetas) entrenar un clasificador.
+- Semi-supervisado: etiquetar un pequeño subconjunto a mano y usar pseudo-etiquetado (self-training) o label propagation para aprovechar el resto.
+Idea clave: primero extraer estructura/representación de los datos, y si necesito un modelo predictivo “con clases”, conseguir etiquetas (manuales o pseudo) o usar técnicas semi-supervisadas.
+
+Pregunta 2 (0.4)
+Matriz A (reales en filas, predichos en columnas):
+  T: 100 T correctos, 1 FN
+  F: 3 FP, 100 TN
+→ Modelo A comete pocos errores (4 en total). Tiene alta precisión/recall, pero no es perfecto.
+
+Matriz B:
+  T: 70 T correctos, 0 FN
+  F: 0 FP, 100 TN
+→ Tal y como está escrita, B no comete errores (0 FP, 0 FN), así que sería mejor que A.
+Nota importante: los totales de A y B no coinciden (parece que no se evaluaron sobre exactamente el mismo conjunto o hay un typo). En un examen lo razonable es:
+- Si se evaluaron sobre el mismo conjunto: B domina a A (mejor).
+- Si NO son comparables por tamaño, hay que pedir aclaración; aun así A tiene pocos errores y B parece “perfecto” en lo mostrado.
+
+Pregunta 3 (0.4)
+Con pocos datos:
+- Cross-validation (k-fold) para usar más eficientemente todo el dataset y estimar generalización sin “quemar” un test grande.
+- Data augmentation (si son imágenes/audio): generar variantes realistas.
+- Regularización y modelos más simples: L2/L1, dropout, early stopping, limitar complejidad para evitar sobreajuste.
+- Transfer learning: usar un modelo preentrenado y ajustar (fine-tuning) con pocos datos.
+- Balanceo/estratificación: splits estratificados, class weights si hay desbalance.
+
+Pregunta 4 (0.4)
+Para reducir memoria de sprites 2D pre-render:
+- Usaría un AUTOENCODER (idealmente convolucional) para comprimir cada sprite a un vector latente pequeño (bottleneck).
+Entrenamiento:
+1) Dataset: sprites originales como imágenes.
+2) Entrenar a reconstruir: entrada=imagen, salida=la misma imagen, minimizando error (MSE / perceptual loss).
+3) En el juego: guardo SOLO el vector latente (mucho más pequeño) y el decoder reconstruye el sprite cuando lo necesito (o lo decodifico en carga).
+Esto reduce memoria a costa de algo de cómputo y posible pérdida controlada de calidad.
+
+Pregunta 5 (0.4)
+Predecir el precio a lo largo del ciclo de vida es un problema de REGRESIÓN con componente temporal.
+Un enfoque razonable:
+- Extraer características del juego (texto/metadata) con embeddings (p.ej. modelo tipo Transformer para descripciones).
+- Incluir señales de ventas y variables temporales (día desde lanzamiento, rebajas, eventos, etc.).
+- Modelo:
+  - Opción A: Gradient Boosting (XGBoost/LightGBM/CatBoost) para tabular (muy fuerte en problemas reales) + features temporales agregadas.
+  - Opción B: modelo de series temporales/seq (LSTM/Transformer temporal) para predecir la curva de precios, usando como condición el embedding del juego y ventas.
+- También es viable un modelo híbrido: clustering de juegos similares + modelo de forecast por cluster.

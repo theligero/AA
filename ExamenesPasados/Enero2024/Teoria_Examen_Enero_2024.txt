@@ -1,0 +1,41 @@
+TU NOMBRE AQUÍ
+
+Pregunta 1 (0.5)
+Si con imágenes 128x128 (16.384 píxeles por canal) un perceptrón multicapa (MLP) no va bien, antes de aplicarlo haría:
+- Normalización/estandarización de píxeles (p.ej. [0,1] o media 0 y desviación 1) para estabilizar el entrenamiento.
+- Reducción de dimensionalidad: bajar resolución (p.ej. 64x64), pasar a escala de grises si aplica, o aplicar PCA para quedarme con componentes principales. Un MLP con 16k entradas necesita muchos parámetros y tiende a sobreajustar con pocos datos.
+- Extracción de características “clásicas” para visión y alimentar esas features al MLP: HOG, histogramas, bordes (Sobel/Canny), etc. Así el MLP clasifica sobre una representación más compacta e informativa.
+- Aumentación de datos (si entreno yo): rotaciones pequeñas, flips, recortes, cambios de brillo/contraste… para mejorar generalización.
+- Balanceo si hay desbalance de clases (ponderación o re-muestreo).
+Justificación: el MLP necesita una representación numérica adecuada y de dimensión manejable; si la entrada es enorme, el modelo se vuelve ineficiente y propenso a sobreajuste.
+
+Pregunta 2 (0.5)
+Tienen capacidad de modelar problemas no lineales:
+- Árbol de decisión (ID3): sí, porque genera regiones por particiones sucesivas (fronteras no lineales en el espacio original).
+- Red profunda con capas convolucionales + última Linear: sí, siempre que haya activaciones no lineales entre capas (ReLU, etc.). La composición de capas no lineales permite funciones no lineales.
+No tiene capacidad no lineal:
+- MLP con activación y = m*z + b (lineal): no, porque una composición de funciones lineales sigue siendo lineal.
+Por tanto, la respuesta correcta es: los dos primeros.
+
+Pregunta 3 (0.5)
+Train acc = 70%, val acc = 50% y baseline = 65% indica que el modelo generaliza mal y además rinde peor que un baseline simple.
+Estrategia:
+1) Sanity checks: comprobar que el preprocesado es igual en train/val, que no hay fuga de etiquetas, que la métrica se calcula bien y que no hay un error de codificación de clases.
+2) Si hay sobreajuste: aumentar regularización (L2, dropout), usar early stopping, reducir complejidad (menos neuronas/capas), o conseguir más datos / aumentar datos.
+3) Si el problema es el set de features: normalizar/estandarizar, seleccionar mejores variables, o probar otro modelo baseline (árbol, logística) para comparar.
+4) Revisar desbalance de clases y usar stratified split o class weights.
+Objetivo: volver al menos al baseline (65%) y luego mejorar.
+
+Pregunta 4 (0.5)
+Salidas: 4 acciones posibles (izquierda, derecha, disparar, saltar) → 4 neuronas de salida (one-hot).
+
+Entradas (una forma razonable):
+- Posición del jugador: 2 neuronas (x,y) o 1 neurona si la casilla está codificada como un índice (depende del enunciado del mapa).
+- Posición de enemigos: si hay K enemigos y guardo (x,y) por enemigo → 2*K neuronas (o K índices). Si K es variable, fijo un máximo K y relleno con un valor (p.ej. -1) cuando haya menos.
+- Contenido de las 8 casillas contiguas: cada casilla puede ser {vacía, suelo, enemigo, item}. Lo más típico: one-hot de 4 valores por casilla → 8*4 = 32 neuronas de entrada.
+Total entrada = (player_pos) + (enemy_pos) + 32.
+
+Entrenamiento:
+- Cada registro es un par (estado → acción).
+- Codifico el estado en un vector de entrada, la acción en one-hot.
+- Entreno el MLP con cross-entropy (softmax) y validación (hold-out o k-fold si hay pocos datos).

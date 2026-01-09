@@ -1,0 +1,64 @@
+TU NOMBRE AQUÍ
+
+Examen Junio 2024 (aunque en el PDF figure “enero 2024”) — Parte teórica (2 puntos)
+
+Pregunta 1 (0.5)
+Los dos modelos forman un AUTOENCODER totalmente conectado (fully-connected).
+- model01: ENCODER (32*32 -> 9). Reduce dimensionalidad: va comprimiendo la imagen a un vector latente de tamaño 9.
+- model02: DECODER (9 -> 32*32) con Sigmoid final para reconstruir píxeles (normalmente en [0,1]).
+¿Para qué sirve?
+- Compresión / reducción de dimensionalidad (features latentes).
+- Denoising autoencoder (si entrenas con ruido).
+- Detección de anomalías (alto error de reconstrucción = “raro”).
+- Preentrenamiento / representación para luego clasificar con un modelo encima.
+
+Pregunta 2 (0.5)
+Problema: agente en grid enorme 10000x10000, objetivo (cofre) con posición desconocida y sin control humano.
+Lo modelaría como APRENDIZAJE POR REFUERZO (RL):
+- Estado: observación del agente (posición, entorno local, memoria/mapa si existe).
+- Acción: moverse (arriba/abajo/izq/der) u otras acciones disponibles.
+- Recompensa: gran recompensa al encontrar el cofre; (si se permite) pequeñas recompensas intermedias (reward shaping).
+Problemas típicos:
+- Recompensa muy escasa (sparse reward): el agente tarda mucho en “ver” el éxito.
+- Espacio de estados gigantesco: imposible tabular.
+- Parcial observabilidad: si no ve el cofre hasta estar cerca, es un POMDP.
+Soluciones:
+- Usar Deep RL (DQN / actor-critic) en vez de Q-table.
+- Mejorar exploración: epsilon-greedy con schedule, entropy bonus, count-based exploration, curiosidad/intrinsic motivation.
+- Currículum: entrenar primero en mapas pequeños o con el cofre más cerca, e ir aumentando dificultad.
+- Memoria: usar RNN/GRU o un “mapa” interno para no repetir zonas.
+Alternativas:
+- RL basado en modelos (model-based) si el agente puede aprender un modelo del entorno.
+- Si hubiera demostraciones (no se indica), se podría hacer imitation learning, pero aquí no tenemos control humano, así que el enfoque principal sería RL + exploración.
+
+Pregunta 3 (0.5)
+Train acc=60% y val acc=50% con baseline=80% indica que el sistema está mal planteado o hay un fallo de pipeline.
+Estrategia:
+1) Sanity checks (lo más importante): 
+   - ¿Baseline está bien calculado (p.ej. clase mayoritaria 80%)?
+   - ¿Hay un error de etiquetas/codificación/clases invertidas?
+   - ¿Preprocesado idéntico en train/val (mismas escalas, one-hot, etc.)?
+2) Si el baseline es la clase mayoritaria: mi modelo debería llegar mínimo a ~80%.
+   - Aumentar capacidad (más neuronas/capas) si está sub-ajustando (train muy bajo).
+   - Ajustar learning rate, epochs, batch_size, regularización.
+3) Revisar features y limpieza: eliminar columnas basura, normalizar, tratar NaNs/outliers.
+4) Probar un modelo simple fuerte como referencia: regresión logística / árbol / random forest.
+Objetivo: superar el baseline y validar con un split estratificado o CV.
+
+Pregunta 4 (0.5)
+Datos guardados:
+- Posición del jugador (casilla): para minimizar tamaño, lo represento como (x, y) normalizados → 2 neuronas de entrada.
+- Contenido de 8 casillas contiguas: cada casilla puede ser {vacía, suelo, enemigo, mejora, vida, pared} → 6 valores.
+  Si uso one-hot: 6 neuronas por casilla → 8*6 = 48 entradas.
+Total entradas = 2 + 48 = 50 neuronas de entrada.
+
+Salida:
+Acciones: {izquierda, derecha, arriba, abajo, disparar, coger item} → 6 acciones → 6 neuronas de salida (one-hot).
+
+Modificación para enemigos con rango 2 (solo atacan a distancia EXACTA 2):
+La red necesita “ver” también el entorno a distancia 2 (no solo las 8 casillas adyacentes).
+Opciones (de menor a mayor tamaño):
+- Añadir features específicas: “hay enemigo a distancia 2” (o en cada dirección), añadiendo pocas neuronas booleanas.
+- Ampliar el vecindario: pasar de 8 casillas a todas las casillas del anillo a distancia 2 (o el cuadrado 5x5 alrededor menos el centro). 
+  Esto aumenta entradas pero permite al agente anticipar ataques a distancia 2.
+Justificación: si no incluyo esa información, dos estados distintos (con enemigo a distancia 2 vs sin enemigo) parecerán iguales a la red, y no podrá actuar correctamente.
